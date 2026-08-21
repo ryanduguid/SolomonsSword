@@ -1,4 +1,4 @@
-# LouisGoldberg
+# Solomon's Sword
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -6,7 +6,9 @@
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 compliance for Australian trusts.**
 
-Named after **Professor Louis Goldberg AO (1908–1997)**, eminent Australian accounting theorist, author of *An Inquiry into the Nature of Accounting*, and foundational University of Melbourne professor.
+Named for the judgement of Solomon, where the threat of dividing the child in proportion is what reveals who the true claimant is. This library does both halves of that: Division 6 allocates trust income by proportionate entitlement following *Bamford*, and Section 100A asks who actually ended up with the benefit.
+
+Installed as the `solomons-sword` distribution, imported as `solomonssword`, and run as `trust-allocate`.
 
 ---
 
@@ -24,10 +26,10 @@ Named after **Professor Louis Goldberg AO (1908–1997)**, eminent Australian ac
 ### CLI Usage
 ```bash
 # Evaluate Section 100A risk zone
-louisgoldberg s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --retained-by-parents
+trust-allocate s100a-check --beneficiary "Adult Child" --amount 40000 --adult-child --retained-by-parents
 
 # Assess Section 99B receipt from foreign trust with corpus deduction
-louisgoldberg s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
+trust-allocate s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
 ```
 
 ---

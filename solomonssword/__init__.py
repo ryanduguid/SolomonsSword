@@ -1,6 +1,6 @@
 """
-LouisGoldberg: Trust Distribution & Section 100A / 99B Risk Engine
-Named after Professor Louis Goldberg AO (1908–1997), pioneer of Australian accounting theory and foundational University of Melbourne accounting scholar.
+SolomonsSword: Trust Distribution & Section 100A / 99B Risk Engine
+Named for the judgement of Solomon, where the threat of proportionate division is what reveals the true claimant.
 """
 
 __version__ = "0.1.0"

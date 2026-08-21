@@ -1,9 +1,9 @@
 from datetime import date
 from decimal import Decimal
-from louisgoldberg.division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
-from louisgoldberg.section100a import evaluate_section100a_risk, Section100ARiskZone
-from louisgoldberg.section99b import ForeignTrustReceipt, evaluate_section99b_liability
-from louisgoldberg.trust_resolution import TrustResolutionSchedule, validate_trust_resolution
+from solomonssword.division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
+from solomonssword.section100a import evaluate_section100a_risk, Section100ARiskZone
+from solomonssword.section99b import ForeignTrustReceipt, evaluate_section99b_liability
+from solomonssword.trust_resolution import TrustResolutionSchedule, validate_trust_resolution
 
 def test_division6_proportionate_approach():
     # Trust with $100k accounting income, $120k s95 taxable net income (due to non-deductible adjustments)

@@ -1,5 +1,5 @@
 """
-CLI interface for LouisGoldberg.
+CLI interface for SolomonsSword.
 """
 
 import argparse
@@ -12,8 +12,8 @@ from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="louisgoldberg",
-        description="LouisGoldberg: Trust Distribution & Section 100A / 99B Compliance Engine",
+        prog="trust-allocate",
+        description="SolomonsSword: Trust Distribution & Section 100A / 99B Compliance Engine",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
