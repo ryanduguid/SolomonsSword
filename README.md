@@ -1,10 +1,12 @@
-# LouisGoldberg
+# SolomonsSword
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-002B49)](https://www.legislation.gov.au/Details/C2024C00036)
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 compliance for Australian trusts.**
+
+The repository name is the public project identity; the `louisgoldberg` distribution and command remain compatibility identifiers.
 
 Named after **Professor Louis Goldberg AO (1908–1997)**, eminent Australian accounting theorist, author of *An Inquiry into the Nature of Accounting*, and foundational University of Melbourne professor.
 
