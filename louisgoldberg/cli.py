@@ -5,6 +5,7 @@ CLI interface for LouisGoldberg.
 import argparse
 import sys
 from decimal import Decimal
+from .decimal_args import decimal_type
 from .division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
 from .section100a import evaluate_section100a_risk
 from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
@@ -20,16 +21,19 @@ def main() -> int:
     # Command: s100a-check
     s100a_parser = subparsers.add_parser("s100a-check", help="Evaluate Section 100A reimbursement agreement risk")
     s100a_parser.add_argument("--beneficiary", type=str, required=True, help="Beneficiary name")
-    s100a_parser.add_argument("--amount", type=Decimal, required=True, help="Distribution amount ($)")
+    s100a_parser.add_argument("--amount", type=decimal_type, required=True, help="Distribution amount ($)")
     s100a_parser.add_argument("--adult-child", action="store_true", help="Beneficiary is an adult child")
     s100a_parser.add_argument("--retained-by-parents", action="store_true", help="Funds retained by parents without loan")
     s100a_parser.add_argument("--circular", action="store_true", help="Circular flow of funds present")
+    received = s100a_parser.add_mutually_exclusive_group()
+    received.add_argument("--received-funds", action="store_true", help="Beneficiary received and retained the funds")
+    received.add_argument("--funds-not-received", action="store_true", help="Beneficiary did not receive the funds")
 
     # Command: s99b-check
     s99b_parser = subparsers.add_parser("s99b-check", help="Evaluate Section 99B foreign trust distribution")
     s99b_parser.add_argument("--beneficiary", type=str, required=True, help="Beneficiary name")
-    s99b_parser.add_argument("--gross", type=Decimal, required=True, help="Gross amount received AUD ($)")
-    s99b_parser.add_argument("--corpus", type=Decimal, default=Decimal("0.00"), help="Corpus / capital settlement ($)")
+    s99b_parser.add_argument("--gross", type=decimal_type, required=True, help="Gross amount received AUD ($)")
+    s99b_parser.add_argument("--corpus", type=decimal_type, default=Decimal("0.00"), help="Corpus / capital settlement ($)")
 
     args = parser.parse_args()
 
@@ -40,7 +44,9 @@ def main() -> int:
             beneficiary_is_adult_child=args.adult_child,
             funds_retained_by_parents_without_loan=args.retained_by_parents,
             circular_flow_of_funds=args.circular,
-            beneficiary_actually_received_funds=not args.retained_by_parents,
+            beneficiary_actually_received_funds=(
+                True if args.received_funds else False if args.funds_not_received else None
+            ),
         )
         print("=" * 60)
         print(f"Section 100A Risk Evaluation — {res.beneficiary_name}")

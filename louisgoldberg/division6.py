@@ -56,6 +56,26 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     if total_trust_inc <= Decimal("0.00") or not assessment.beneficiaries:
         return shares
 
+    implied: list[Decimal] = []
+    for b in assessment.beneficiaries:
+        if b.percentage_entitlement is not None:
+            implied.append(b.percentage_entitlement)
+        elif b.fixed_entitlement_amount is not None:
+            implied.append(
+                ((b.fixed_entitlement_amount / total_trust_inc) * Decimal("100.00")).quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            )
+        else:
+            raise ValueError(
+                f"{b.beneficiary_name} has neither a percentage nor a fixed entitlement"
+            )
+    total_pct = sum(implied, Decimal("0.00"))
+    if abs(total_pct - Decimal("100.00")) > Decimal("0.01"):
+        raise ValueError(
+            f"beneficiary entitlements sum to {total_pct}%, not 100%"
+        )
+
     # Calculate base income proportions
     for b in assessment.beneficiaries:
         if b.percentage_entitlement is not None:

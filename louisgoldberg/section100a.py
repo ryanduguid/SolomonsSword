@@ -43,7 +43,7 @@ def evaluate_section100a_risk(
     funds_retained_by_parents_without_loan: bool = False,
     circular_flow_of_funds: bool = False,
     corporate_beneficiary_unpaid_present_entitlement: bool = False,
-    beneficiary_actually_received_funds: bool = True,
+    beneficiary_actually_received_funds: bool | None = None,
     funds_used_for_beneficiary_direct_benefit: bool = False,  # e.g., education, medical, independent asset
     commercial_loan_agreement_in_place: bool = False,
 ) -> Section100AAssessment:
@@ -62,7 +62,7 @@ def evaluate_section100a_risk(
         risk_factors.append("Corporate beneficiary UPE without Div 7A compliant loan agreement or sub-trust")
 
     # Check Green Zone qualifications (PCG 2022/2 Appendix 2)
-    if beneficiary_actually_received_funds and not funds_retained_by_parents_without_loan:
+    if beneficiary_actually_received_funds is True and not funds_retained_by_parents_without_loan:
         mitigating.append("Beneficiary received and retained full economic benefit of entitlement")
     if funds_used_for_beneficiary_direct_benefit:
         mitigating.append("Funds applied directly for beneficiary's education, medical, or capital asset acquisition")
