@@ -1,0 +1,94 @@
+"""
+Section 100A Reimbursement Agreement risk assessment aligned with
+ATO Practical Compliance Guideline PCG 2022/2 and TR 2022/4.
+"""
+
+from dataclasses import dataclass
+from decimal import Decimal
+from enum import Enum
+from typing import List, Optional
+
+
+class Section100ARiskZone(str, Enum):
+    GREEN = "GREEN"  # Low risk / Ordinary family dealing
+    BLUE = "BLUE"    # Moderate risk / Review required
+    RED = "RED"      # High risk / ATO audit trigger
+
+
+@dataclass(frozen=True)
+class Section100AAssessment:
+    beneficiary_name: str
+    distribution_amount: Decimal
+    risk_zone: Section100ARiskZone
+    is_ordinary_family_dealing: bool
+    risk_factors_identified: List[str]
+    mitigating_factors: List[str]
+    tax_consequence_summary: str
+    statutory_reference: str
+
+
+def evaluate_section100a_risk(
+    beneficiary_name: str,
+    distribution_amount: Decimal,
+    beneficiary_is_adult_child: bool = False,
+    funds_retained_by_parents_without_loan: bool = False,
+    circular_flow_of_funds: bool = False,
+    corporate_beneficiary_unpaid_present_entitlement: bool = False,
+    beneficiary_actually_received_funds: bool = True,
+    funds_used_for_beneficiary_direct_benefit: bool = False,  # e.g., education, medical, independent asset
+    commercial_loan_agreement_in_place: bool = False,
+) -> Section100AAssessment:
+    """
+    Evaluate Section 100A risk zone under PCG 2022/2.
+    """
+    risk_factors: List[str] = []
+    mitigating: List[str] = []
+
+    # Check Red Zone triggers (PCG 2022/2 Appendix 1)
+    if circular_flow_of_funds:
+        risk_factors.append("Circular flow of funds detected (e.g. trust -> beneficiary -> company -> trust)")
+    if beneficiary_is_adult_child and funds_retained_by_parents_without_loan:
+        risk_factors.append("Adult child present entitlement retained by parents for general living costs without commercial terms")
+    if corporate_beneficiary_unpaid_present_entitlement and not commercial_loan_agreement_in_place:
+        risk_factors.append("Corporate beneficiary UPE without Div 7A compliant loan agreement or sub-trust")
+
+    # Check Green Zone qualifications (PCG 2022/2 Appendix 2)
+    if beneficiary_actually_received_funds and not funds_retained_by_parents_without_loan:
+        mitigating.append("Beneficiary received and retained full economic benefit of entitlement")
+    if funds_used_for_beneficiary_direct_benefit:
+        mitigating.append("Funds applied directly for beneficiary's education, medical, or capital asset acquisition")
+    if commercial_loan_agreement_in_place:
+        mitigating.append("Funds lent under documented arm's-length commercial terms with interest paid")
+
+    # Determine Risk Zone
+    if risk_factors:
+        zone = Section100ARiskZone.RED
+        is_ofd = False
+        consequence = (
+            "HIGH RISK: High likelihood of s 100A application. If s 100A applies, the entitlement is disregarded "
+            "and trustee is assessed at top marginal rate (47%) under s 99A."
+        )
+    elif mitigating:
+        zone = Section100ARiskZone.GREEN
+        is_ofd = True
+        consequence = (
+            "LOW RISK: Qualifies under Green Zone / Ordinary Family Dealing exception (s 100A(13)). "
+            "ATO compliance resources will not be dedicated to review."
+        )
+    else:
+        zone = Section100ARiskZone.BLUE
+        is_ofd = False
+        consequence = (
+            "MODERATE RISK: Blue Zone arrangement. Further factual inquiry and contemporaneous documentation required."
+        )
+
+    return Section100AAssessment(
+        beneficiary_name=beneficiary_name,
+        distribution_amount=distribution_amount,
+        risk_zone=zone,
+        is_ordinary_family_dealing=is_ofd,
+        risk_factors_identified=risk_factors,
+        mitigating_factors=mitigating,
+        tax_consequence_summary=consequence,
+        statutory_reference="s 100A ITAA 1936; ATO PCG 2022/2; TR 2022/4",
+    )
