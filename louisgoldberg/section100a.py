@@ -10,9 +10,18 @@ from typing import List, Optional
 
 
 class Section100ARiskZone(str, Enum):
-    GREEN = "GREEN"  # Low risk / Ordinary family dealing
-    BLUE = "BLUE"    # Moderate risk / Review required
-    RED = "RED"      # High risk / ATO audit trigger
+    """PCG 2022/2 zones, plus the residual case the guideline leaves unzoned.
+
+    The finalised guideline carries three zones: white (entitlements conferred
+    in income years before 1 July 2014), green (low risk) and red (high risk).
+    Draft PCG 2022/D1 also had a blue zone, which did not survive into the
+    final guideline. The white zone is not decided here because it turns on the
+    income year, which this function does not take.
+    """
+
+    GREEN = "GREEN"                  # Low risk, ordinary family dealing
+    OUTSIDE_GREEN = "OUTSIDE_GREEN"  # Meets no green criterion, matches no red example
+    RED = "RED"                      # High risk, ATO dedicates compliance resources
 
 
 @dataclass(frozen=True)
@@ -76,10 +85,12 @@ def evaluate_section100a_risk(
             "ATO compliance resources will not be dedicated to review."
         )
     else:
-        zone = Section100ARiskZone.BLUE
+        zone = Section100ARiskZone.OUTSIDE_GREEN
         is_ofd = False
         consequence = (
-            "MODERATE RISK: Blue Zone arrangement. Further factual inquiry and contemporaneous documentation required."
+            "OUTSIDE THE GREEN ZONE: the arrangement meets no green zone criterion and matches no red zone "
+            "example, so PCG 2022/2 assigns it no zone. Further factual inquiry and contemporaneous "
+            "documentation required."
         )
 
     return Section100AAssessment(
