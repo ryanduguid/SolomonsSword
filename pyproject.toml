@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "louisgoldberg"
-version = "0.1.0"
+version = "0.1.1"
 description = "Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 compliance for Australian trusts."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,14 +32,14 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
-dependencies = [
-    "pydantic>=2.0.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
+    "ruff>=0.11",
+    "mypy>=1.14",
 ]
 
 [project.scripts]
@@ -51,3 +51,13 @@ packages = ["louisgoldberg"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = "--cov=louisgoldberg --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+src = ["louisgoldberg", "tests"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["louisgoldberg"]
+pretty = true
