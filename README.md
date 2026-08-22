@@ -13,7 +13,7 @@ Installed as the `solomons-sword` distribution, imported as `solomonssword`, and
 
 ---
 
-## 🔍 Core Features
+## Core Features
 
 - **Division 6 Proportionate Allocation (*Bamford v FCT*)**: Calculates present entitlement proportions and allocates *s 95(1) ITAA 1936* taxable net income, franking credits, and streamed capital gains (*Subdivision 115-220*) / franked dividends (*Subdivision 207-B*).
 - **Section 100A Reimbursement Agreement Matrix**: Evaluates arrangements against **ATO PCG 2022/2** risk zones (Green / Blue / Red), ordinary family dealing exclusions (*s 100A(13)*), and circular flow triggers.
@@ -22,7 +22,7 @@ Installed as the `solomons-sword` distribution, imported as `solomonssword`, and
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### CLI Usage
 ```bash
@@ -35,7 +35,7 @@ trust-allocate s99b-check --beneficiary "Jane Doe" --gross 150000 --corpus 50000
 
 ---
 
-## 📐 Statutory Ground Truth & Test Harness
+## Statutory Ground Truth & Test Harness
 
 All allocation and threshold algorithms use exact `decimal.Decimal` calculations to prevent rounding discrepancies in trust tax schedules.
 
@@ -52,5 +52,5 @@ All allocation and threshold algorithms use exact `decimal.Decimal` calculations
 
 ---
 
-## ⚖️ License
+## Licence
 MIT License. Created by Ryan Duguid.
