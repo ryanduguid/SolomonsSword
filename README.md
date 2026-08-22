@@ -1,9 +1,9 @@
 # Solomon's Sword
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-002B49)](https://www.legislation.gov.au/C1936A00027/latest/text)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
+[![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-5C2D91?labelColor=04001F)](https://www.legislation.gov.au/C1936A00027/latest/text)
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
