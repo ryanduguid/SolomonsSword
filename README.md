@@ -20,6 +20,10 @@ exemption against the current law, the trust deed and the entity's facts before
 acting, and leave lodgment decisions with a registered practitioner. Where the
 model does not implement a rule it refuses the input rather than returning a
 number it cannot stand behind.
+
+Command output carries the beneficiary name you supply, because a workpaper line
+item is unusable without it. Treat that output as client data: write it to the
+firm's approved secure location, never to a path inside a repository.
 ---
 
 ## Core Features
