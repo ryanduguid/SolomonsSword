@@ -1,3 +1,4 @@
+import pytest
 from datetime import date
 from decimal import Decimal
 from louisgoldberg.division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
@@ -31,7 +32,10 @@ def test_division6_proportionate_approach():
     assert shares[0].section95_net_income_share == Decimal("60000.00")
     # 50% of $15,000 = $7,500
     assert shares[0].franking_credit_grossup == Decimal("7500.00")
-    assert shares[0].total_taxable_component == Decimal("67500.00")
+    # s 207-35 already includes the gross-up in the trust's s 95 net income, so
+    # the share is the net income share alone and the credit is reported
+    # separately for the s 207-45 offset.
+    assert shares[0].total_taxable_component == Decimal("60000.00")
 
 def test_section100a_risk_zones():
     # Red Zone: Adult child distribution retained by parents without loan
@@ -53,7 +57,9 @@ def test_section100a_risk_zones():
         beneficiary_actually_received_funds=True,
     )
     assert green_res.risk_zone == Section100ARiskZone.GREEN
-    assert green_res.is_ordinary_family_dealing is True
+    # PCG 2022/2's green zone is a compliance-resourcing stance; it does not
+    # decide the s 100A(13) ordinary family dealing exception.
+    assert green_res.is_ordinary_family_dealing is None
 
 def test_section99b_corpus_exemption():
     # $100k foreign trust distribution, $40k is original settled corpus
@@ -138,3 +144,109 @@ def test_trust_resolution_rejects_zero_percent_and_missing_deed_facts():
     assert any("100%" in issue for issue in issues)
     assert any("streaming" in issue for issue in issues)
     assert any("default beneficiary" in issue for issue in issues)
+
+
+def test_streamed_amounts_are_refused_not_misallocated():
+    # Streaming previously allocated 150% of the franking credit pool.
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("130000.00"),
+        franked_dividends=Decimal("70000.00"), franking_credits=Decimal("30000.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", percentage_entitlement=Decimal("50.00"),
+                                   specifically_streamed_franked_dividends=Decimal("70000.00")),
+            BeneficiaryEntitlement("B", percentage_entitlement=Decimal("50.00")),
+        ],
+    )
+    with pytest.raises(ValueError, match="Division 6E"):
+        calculate_proportionate_share(t)
+
+
+def test_shares_reconcile_to_the_net_income():
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", fixed_entitlement_amount=Decimal("33333.33")),
+            BeneficiaryEntitlement("B", fixed_entitlement_amount=Decimal("33333.33")),
+            BeneficiaryEntitlement("C", fixed_entitlement_amount=Decimal("33333.34")),
+        ],
+    )
+    shares = calculate_proportionate_share(t)
+    assert sum(s.section95_net_income_share for s in shares) == Decimal("100000.00")
+
+
+def test_franking_credits_are_not_added_on_top_of_the_net_income_share():
+    # s 207-35 already includes the gross-up in the trust's s 95 net income.
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("130000.00"),
+        franked_dividends=Decimal("70000.00"), franking_credits=Decimal("30000.00"),
+        beneficiaries=[BeneficiaryEntitlement("A", percentage_entitlement=Decimal("100.00"))],
+    )
+    share = calculate_proportionate_share(t)[0]
+    assert share.section95_net_income_share == Decimal("130000.00")
+    assert share.franking_credit_grossup == Decimal("30000.00")
+    assert share.total_taxable_component == Decimal("130000.00")
+
+
+def test_unmodelled_cases_fail_closed():
+    base = dict(financial_year=2025, trust_name="T",
+                trust_accounting_income=Decimal("100000.00"),
+                section95_net_taxable_income=Decimal("100000.00"))
+    with pytest.raises(ValueError, match="s 99 or s 99A"):
+        calculate_proportionate_share(TrustIncomeAssessment(beneficiaries=[], **base))
+    with pytest.raises(ValueError, match="s 99 or s 99A"):
+        calculate_proportionate_share(TrustIncomeAssessment(
+            beneficiaries=[BeneficiaryEntitlement("A", percentage_entitlement=Decimal("100.00"))],
+            financial_year=2025, trust_name="T",
+            trust_accounting_income=Decimal("0.00"),
+            section95_net_taxable_income=Decimal("50000.00")))
+    with pytest.raises(ValueError, match="non-resident"):
+        calculate_proportionate_share(TrustIncomeAssessment(
+            beneficiaries=[BeneficiaryEntitlement("NR", is_resident=False, percentage_entitlement=Decimal("100.00"))],
+            **base))
+    with pytest.raises(ValueError, match="at most 100 per cent"):
+        calculate_proportionate_share(TrustIncomeAssessment(
+            beneficiaries=[BeneficiaryEntitlement("A", percentage_entitlement=Decimal("150.00")),
+                           BeneficiaryEntitlement("B", percentage_entitlement=Decimal("-50.00"))],
+            **base))
+
+
+def test_minor_beneficiary_is_assessed_to_the_trustee():
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[BeneficiaryEntitlement("Minor", is_under_legal_disability=True,
+                                              percentage_entitlement=Decimal("100.00"))],
+    )
+    assert "s 98" in calculate_proportionate_share(t)[0].assessed_under_section
+
+
+def test_s99b_corpus_proviso_and_residency():
+    from louisgoldberg.section99b import ForeignTrustReceipt, evaluate_section99b_liability
+    r = evaluate_section99b_liability(ForeignTrustReceipt(
+        "A", Decimal("100000.00"), corpus_amount_aud=Decimal("20000.00"),
+        corpus_attributable_to_notional_assessable_income_aud=Decimal("5000.00")))
+    assert r.corpus_exemption == Decimal("15000.00")
+    assert r.assessable_income_under_s99b == Decimal("85000.00")
+    with pytest.raises(ValueError, match="resident"):
+        evaluate_section99b_liability(ForeignTrustReceipt(
+            "B", Decimal("100000.00"), beneficiary_was_resident_during_year=False))
+    with pytest.raises(ValueError, match="non-negative"):
+        evaluate_section99b_liability(ForeignTrustReceipt("C", Decimal("100000.00"),
+                                                          corpus_amount_aud=Decimal("-1.00")))
+
+
+def test_green_zone_does_not_claim_the_ordinary_family_dealing_exception():
+    from louisgoldberg.section100a import evaluate_section100a_risk, Section100ARiskZone
+    res = evaluate_section100a_risk(
+        beneficiary_name="A", distribution_amount=Decimal("50000.00"),
+        beneficiary_actually_received_funds=True)
+    assert res.risk_zone == Section100ARiskZone.GREEN
+    assert res.is_ordinary_family_dealing is None
+    assert "not a determination" in res.tax_consequence_summary
