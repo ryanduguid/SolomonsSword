@@ -12,6 +12,10 @@ from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
 
 NOT_ADVICE = "Not advice. Review aid only; confirm against current law and the trust deed before acting."
+# Output carries the beneficiary name the operator supplied, because a workpaper
+# line item is unusable without it. That makes stdout client data: send it to the
+# firm's secure location, never to a path inside a repository.
+DATA_BOUNDARY = "Output contains client data. Write it only to the firm's approved secure location."
 
 
 def main() -> int:
@@ -73,6 +77,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             print(f"Risk Factors:            {', '.join(res.risk_factors_identified)}")
         print(f"Consequence:             {res.tax_consequence_summary}")
         print(NOT_ADVICE)
+        print(DATA_BOUNDARY)
         print("=" * 60)
         return 0
 
@@ -94,6 +99,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print(f"Assessable under s99B:   ${s99b.assessable_income_under_s99b:,.2f}")
         print(f"Basis:                   {s99b.statutory_basis}")
         print(NOT_ADVICE)
+        print(DATA_BOUNDARY)
         print("=" * 60)
         return 0
 
