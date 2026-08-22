@@ -29,7 +29,9 @@ class Section100AAssessment:
     beneficiary_name: str
     distribution_amount: Decimal
     risk_zone: Section100ARiskZone
-    is_ordinary_family_dealing: bool
+    # None where PCG 2022/2 assigns a zone but does not decide the s 100A(13)
+    # ordinary family dealing exception (green zone).
+    is_ordinary_family_dealing: Optional[bool]
     risk_factors_identified: List[str]
     mitigating_factors: List[str]
     tax_consequence_summary: str
@@ -79,10 +81,15 @@ def evaluate_section100a_risk(
         )
     elif mitigating:
         zone = Section100ARiskZone.GREEN
-        is_ofd = True
+        # PCG 2022/2's green zone is a compliance-resourcing stance, not a
+        # ruling that the s 100A(13) ordinary family dealing exception applies.
+        is_ofd = None
         consequence = (
-            "LOW RISK: Qualifies under Green Zone / Ordinary Family Dealing exception (s 100A(13)). "
-            "ATO compliance resources will not be dedicated to review."
+            "GREEN ZONE: the arrangement matches a green zone example, so the ATO states it "
+            "will not dedicate compliance resources to it, subject to the guideline's own "
+            "exclusions. That is not a determination that s 100A does not apply, and it does "
+            "not decide the s 100A(13) ordinary family dealing exception, which turns on the "
+            "facts of the dealing."
         )
     else:
         zone = Section100ARiskZone.OUTSIDE_GREEN
