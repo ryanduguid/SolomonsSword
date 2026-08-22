@@ -1,7 +1,7 @@
 # Solomon's Sword
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-4%20passed%20%7C%20100%25-brightgreen)](tests)
+[![tests](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ITAA 1936](https://img.shields.io/badge/Legislation-ITAA%201936%20Division%206-002B49)](https://www.legislation.gov.au/Details/C2024C00036)
 
