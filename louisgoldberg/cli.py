@@ -1,5 +1,5 @@
 """
-CLI interface for LouisGoldberg.
+CLI interface for Solomon's Sword (package louisgoldberg).
 """
 
 import argparse
@@ -11,10 +11,13 @@ from .section100a import evaluate_section100a_risk
 from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
 
+NOT_ADVICE = "Not advice. Review aid only; confirm against current law and the trust deed before acting."
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="louisgoldberg",
-        description="LouisGoldberg: Trust Distribution & Section 100A / 99B Compliance Engine",
+        description="Solomon's Sword: Division 6 trust allocation with s 100A and s 99B checks. Review aid, not advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
@@ -34,8 +37,20 @@ def main() -> int:
     s99b_parser.add_argument("--beneficiary", type=str, required=True, help="Beneficiary name")
     s99b_parser.add_argument("--gross", type=decimal_type, required=True, help="Gross amount received AUD ($)")
     s99b_parser.add_argument("--corpus", type=decimal_type, default=Decimal("0.00"), help="Corpus / capital settlement ($)")
+    s99b_parser.add_argument("--corpus-attributable", type=decimal_type, default=Decimal("0.00"), help="Part of the corpus attributable to amounts that would have been assessable to a resident (s 99B(2)(a) proviso)")
+    s99b_parser.add_argument("--not-assessable-to-resident", type=decimal_type, default=Decimal("0.00"), help="Amounts that would not have been assessable to a resident (s 99B(2)(b))")
+    s99b_parser.add_argument("--prior-taxed", type=decimal_type, default=Decimal("0.00"), help="Amounts already assessed under s 97/98/99/99A (s 99B(2)(c))")
 
     args = parser.parse_args()
+
+    try:
+        return _dispatch(args, parser)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
 
     if args.command == "s100a-check":
         res = evaluate_section100a_risk(
@@ -57,6 +72,7 @@ def main() -> int:
         if res.risk_factors_identified:
             print(f"Risk Factors:            {', '.join(res.risk_factors_identified)}")
         print(f"Consequence:             {res.tax_consequence_summary}")
+        print(NOT_ADVICE)
         print("=" * 60)
         return 0
 
@@ -65,15 +81,19 @@ def main() -> int:
             beneficiary_name=args.beneficiary,
             gross_amount_received_aud=args.gross,
             corpus_amount_aud=args.corpus,
+            corpus_attributable_to_notional_assessable_income_aud=args.corpus_attributable,
+            not_assessable_to_resident_aud=args.not_assessable_to_resident,
+            already_assessed_under_div6_aud=args.prior_taxed,
         )
-        res = evaluate_section99b_liability(receipt)
+        s99b = evaluate_section99b_liability(receipt)
         print("=" * 60)
-        print(f"Section 99B Assessment — {res.beneficiary_name}")
+        print(f"Section 99B Assessment — {s99b.beneficiary_name}")
         print("=" * 60)
-        print(f"Gross Receipt:           ${res.gross_receipt:,.2f}")
-        print(f"Corpus Exemption:        ${res.corpus_exemption:,.2f}")
-        print(f"Assessable under s99B:   ${res.assessable_income_under_s99b:,.2f}")
-        print(f"Basis:                   {res.statutory_basis}")
+        print(f"Gross Receipt:           ${s99b.gross_receipt:,.2f}")
+        print(f"Corpus Exemption:        ${s99b.corpus_exemption:,.2f}")
+        print(f"Assessable under s99B:   ${s99b.assessable_income_under_s99b:,.2f}")
+        print(f"Basis:                   {s99b.statutory_basis}")
+        print(NOT_ADVICE)
         print("=" * 60)
         return 0
 

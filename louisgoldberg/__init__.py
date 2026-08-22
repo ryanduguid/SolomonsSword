@@ -3,7 +3,12 @@ LouisGoldberg: Trust Distribution & Section 100A / 99B Risk Engine
 Named after Professor Louis Goldberg AO (1908–1997), pioneer of Australian accounting theory and foundational University of Melbourne accounting scholar.
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version as _dist_version
+
+try:
+    __version__ = _dist_version("louisgoldberg")
+except PackageNotFoundError:  # running from a source tree without installation
+    __version__ = "0.0.0.dev0"
 __author__ = "Ryan Duguid"
 
 from .division6 import (
