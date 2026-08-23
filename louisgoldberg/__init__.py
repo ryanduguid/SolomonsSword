@@ -1,6 +1,6 @@
 """
-LouisGoldberg: Trust Distribution & Section 100A / 99B Risk Engine
-Named after Professor Louis Goldberg AO (1908–1997), pioneer of Australian accounting theory and foundational University of Melbourne accounting scholar.
+Solomon's Sword: Trust Distribution & Section 100A / 99B Risk Engine
+The distribution keeps its package name `louisgoldberg` as a compatibility identifier.
 """
 
 from importlib.metadata import PackageNotFoundError, version as _dist_version
