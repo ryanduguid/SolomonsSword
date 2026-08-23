@@ -11,7 +11,7 @@ number the model cannot stand behind. Outputs are review aids, not advice.
 
 from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 
 @dataclass(frozen=True)

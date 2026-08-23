@@ -4,7 +4,6 @@ Section 99B ITAA 1936 Assessment for receipts from non-resident / foreign trusts
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional
 
 
 @dataclass(frozen=True)
