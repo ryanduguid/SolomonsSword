@@ -6,7 +6,6 @@ import argparse
 import sys
 from decimal import Decimal
 from .decimal_args import decimal_type
-from .division6 import TrustIncomeAssessment, BeneficiaryEntitlement, calculate_proportionate_share
 from .section100a import evaluate_section100a_risk
 from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
