@@ -4,8 +4,7 @@ CLI interface for Solomon's Sword (package louisgoldberg).
 
 import argparse
 import sys
-from decimal import Decimal
-from .decimal_args import decimal_type
+from decimal import Decimal, InvalidOperation
 from .section100a import evaluate_section100a_risk
 from .section99b import ForeignTrustReceipt, evaluate_section99b_liability
 
@@ -16,6 +15,17 @@ NOT_ADVICE = "Not advice. Review aid only; confirm against current law and the t
 # firm's secure location, never to a path inside a repository.
 DATA_BOUNDARY = "Output contains client data. Write it only to the firm's approved secure location."
 
+
+
+def decimal_type(value: str) -> Decimal:
+    """Fail-closed argparse type for Decimal money."""
+    try:
+        parsed = Decimal(value)
+    except (InvalidOperation, ValueError) as exc:
+        raise argparse.ArgumentTypeError(f"not a decimal amount: {value!r}") from exc
+    if not parsed.is_finite():
+        raise argparse.ArgumentTypeError(f"not a finite decimal amount: {value!r}")
+    return parsed
 
 def main() -> int:
     parser = argparse.ArgumentParser(
