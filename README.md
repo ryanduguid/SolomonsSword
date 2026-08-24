@@ -1,5 +1,19 @@
 # Solomon's Sword
 
+```
++----------------------------------------------------------------------+
+|                            SolomonsSword                             |
++----------------------------------------------------------------------+
+|            Division 6, s100A and s99B trust review tools             |
++----------------------------------+-----------------------------------+
+| DR  what it gives you            | CR  what it needs                 |
++----------------------------------+-----------------------------------+
+| s100A green red risk zones       | beneficiary and amount data       |
+| s99B foreign trust review        | trust facts like corpus value     |
+| Division 6 allocation review     | -                                 |
++----------------------------------+-----------------------------------+
+```
+
 [![Python](https://img.shields.io/badge/Python-3.10+-5C2D91?logo=python&logoColor=white&labelColor=04001F)](https://www.python.org/)
 [![tests](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanduguid/SolomonsSword/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F485E.svg?labelColor=04001F)](https://opensource.org/licenses/MIT)
