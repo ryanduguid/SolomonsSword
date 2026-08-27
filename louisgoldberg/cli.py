@@ -1,5 +1,5 @@
 """
-CLI interface for Solomon's Sword (package louisgoldberg).
+CLI interface for Solomon's Sword (import package louisgoldberg).
 """
 
 import argparse
@@ -29,7 +29,7 @@ def decimal_type(value: str) -> Decimal:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="louisgoldberg",
+        prog="solomons-sword",
         description="Solomon's Sword: Division 6 trust allocation with s 100A and s 99B checks. Review aid, not advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
