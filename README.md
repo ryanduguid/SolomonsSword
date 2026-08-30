@@ -45,6 +45,7 @@ item is unusable without it. Treat that output as client data: write it to the
 firm's approved secure location, never to a path inside a repository.
 
 Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
+
 ---
 
 ## Core Features
