@@ -1,5 +1,7 @@
 # v0.1.2
 
+The repository's [GitHub Releases](https://github.com/ryanduguid/SolomonsSword/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
+
 Prepared 0.1.2 notes. No PyPI distribution has been published; this source-only
 project currently installs from a clone. The statutory corrections below came
 from an audit whose claims were checked against the ITAA 1936 compilation in
