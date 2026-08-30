@@ -63,10 +63,6 @@ def evaluate_section100a_risk(
         risk_factors.append("Adult child present entitlement retained by parents for general living costs without commercial terms")
     if corporate_beneficiary_unpaid_present_entitlement and not commercial_loan_agreement_in_place:
         risk_factors.append("Corporate beneficiary UPE without Div 7A compliant loan agreement or sub-trust")
-    # An entitlement the beneficiary never receives is the fact s 100A turns on
-    # (TR 2022/4), so record it wherever the operator has stated it.
-    if beneficiary_actually_received_funds is False:
-        risk_factors.append("Beneficiary did not receive the funds representing the present entitlement")
 
     # Check Green Zone qualifications (PCG 2022/2 Appendix 2)
     if beneficiary_actually_received_funds is True and not funds_retained_by_parents_without_loan:
@@ -106,6 +102,15 @@ def evaluate_section100a_risk(
             "example, so PCG 2022/2 assigns it no zone. Further factual inquiry and contemporaneous "
             "documentation required."
         )
+
+    # An entitlement the beneficiary never receives is a fact s 100A turns on
+    # (TR 2022/4), so record it whenever the operator states it. Recorded
+    # after zoning: alone it establishes neither a reimbursement agreement
+    # nor a red-zone pattern, and the green-zone dealings this module models
+    # (a Div 7A commercial loan, funds applied directly for the beneficiary)
+    # involve non-receipt by definition, so the fact must not drive the zone.
+    if beneficiary_actually_received_funds is False:
+        risk_factors.append("Beneficiary did not receive the funds representing the present entitlement")
 
     return Section100AAssessment(
         beneficiary_name=beneficiary_name,

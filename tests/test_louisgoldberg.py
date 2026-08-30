@@ -302,6 +302,19 @@ def test_entitlements_that_do_not_reconcile_exactly_are_refused():
     with pytest.raises(ValueError, match="10000.00 of the income of the trust estate is unallocated"):
         calculate_proportionate_share(mixed)
 
+    # Over-allocation is named as such, not as unallocated income.
+    over = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", percentage_entitlement=Decimal("60.00")),
+            BeneficiaryEntitlement("B", percentage_entitlement=Decimal("40.01")),
+        ],
+    )
+    with pytest.raises(ValueError, match="over-allocate the income of the trust estate by 10.00"):
+        calculate_proportionate_share(over)
+
 
 def test_equal_fixed_entitlements_that_exhaust_the_income_are_allocated():
     # Seven equal fixed entitlements imply 14.29% each, 100.03% once rounded,
@@ -365,6 +378,10 @@ def test_resolution_before_the_income_year_started_is_refused():
 
 
 def test_funds_not_received_is_recorded_as_a_risk_factor():
+    # Non-receipt is a fact s 100A turns on, so it is recorded, but alone it
+    # establishes no red-zone pattern, and green-zone dealings like a Div 7A
+    # commercial loan involve non-receipt by definition, so the recorded fact
+    # must not drive the zone.
     not_received = evaluate_section100a_risk(
         beneficiary_name="A", distribution_amount=Decimal("50000.00"),
         beneficiary_actually_received_funds=False)
@@ -373,3 +390,29 @@ def test_funds_not_received_is_recorded_as_a_risk_factor():
     assert not_received != unstated
     assert any("did not receive the funds" in f for f in not_received.risk_factors_identified)
     assert unstated.risk_factors_identified == []
+    assert not_received.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
+    assert not_received.is_ordinary_family_dealing is None
+
+    lent_commercially = evaluate_section100a_risk(
+        beneficiary_name="A", distribution_amount=Decimal("50000.00"),
+        beneficiary_actually_received_funds=False,
+        commercial_loan_agreement_in_place=True)
+    assert lent_commercially.risk_zone == Section100ARiskZone.GREEN
+    assert any("did not receive the funds" in f for f in lent_commercially.risk_factors_identified)
+
+
+def test_cent_exact_mixed_entitlements_are_allocated():
+    # A fixed leg plus a percentage leg that lands on a whole cent reconciles
+    # even though the percentage's exact dollar value has no finite sub-cent
+    # representation: reconciliation happens at the module's cent granularity.
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("1234567.01"),
+        section95_net_taxable_income=Decimal("1234567.01"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", fixed_entitlement_amount=Decimal("823085.83")),
+            BeneficiaryEntitlement("B", percentage_entitlement=Decimal("33.33")),
+        ],
+    )
+    shares = calculate_proportionate_share(t)
+    assert sum(s.section95_net_income_share for s in shares) == Decimal("1234567.01")

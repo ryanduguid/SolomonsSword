@@ -132,11 +132,18 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             raise ValueError(
                 f"{b.beneficiary_name} has neither a percentage nor a fixed entitlement"
             )
-    # Exact reconciliation, not a tolerance: a percentage basis must sum to 100
-    # and a fixed basis to the income of the trust estate. Anything else leaves
-    # income genuinely unallocated, and the rounding residual below would hand
-    # that whole gap to one beneficiary as though it were quantisation dust.
-    entitled_total = fixed_total + pct_total * total_trust_inc / Decimal("100")
+    # Reconciliation at the module's own cent granularity, not a tolerance: a
+    # percentage basis must sum to 100 and a fixed basis to the income of the
+    # trust estate. Anything else leaves income genuinely unallocated or
+    # over-allocated, and the rounding residual below would hand that whole
+    # gap to one beneficiary as though it were quantisation dust. The
+    # percentage leg is quantised to the cent the same way every dollar this
+    # module emits is: demanding bit-exactness below a cent would refuse deeds
+    # that reconcile to the cent, since a share like 33.33% of most incomes
+    # has no exact sub-cent dollar value.
+    entitled_total = fixed_total + (
+        pct_total * total_trust_inc / Decimal("100")
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     if entitled_total != total_trust_inc:
         gap = (total_trust_inc - entitled_total).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
@@ -153,10 +160,17 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
                 f"beneficiary entitlements sum to {fixed_total} plus {pct_total}% of the "
                 f"{total_trust_inc} income of the trust estate"
             )
+        if gap > Decimal("0.00"):
+            direction = f"{gap} of the income of the trust estate is unallocated"
+        else:
+            direction = (
+                "the entitlements over-allocate the income of the trust estate "
+                f"by {-gap}"
+            )
         raise ValueError(
-            f"{summary}: {abs(gap)} of the income of the trust estate is unallocated, "
+            f"{summary}: {direction}, "
             "and the proportionate approach will not allocate the s 95 net income "
-            "until the entitlements reconcile exactly"
+            "until the entitlements reconcile to the cent"
         )
 
     # Allocate on the unrounded ratios, then hand the rounding residual to the
