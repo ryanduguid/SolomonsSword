@@ -1,12 +1,12 @@
 """
 Solomon's Sword: Trust Distribution & Section 100A / 99B Risk Engine
-The distribution keeps its package name `louisgoldberg` as a compatibility identifier.
+The distribution is `solomons-sword`; the import package remains `louisgoldberg`.
 """
 
 from importlib.metadata import PackageNotFoundError, version as _dist_version
 
 try:
-    __version__ = _dist_version("louisgoldberg")
+    __version__ = _dist_version("solomons-sword")
 except PackageNotFoundError:  # running from a source tree without installation
     __version__ = "0.0.0.dev0"
 __author__ = "Ryan Duguid"

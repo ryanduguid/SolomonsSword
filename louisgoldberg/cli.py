@@ -1,5 +1,5 @@
 """
-CLI interface for Solomon's Sword (package louisgoldberg).
+CLI interface for Solomon's Sword (import package louisgoldberg).
 """
 
 import argparse
@@ -29,7 +29,7 @@ def decimal_type(value: str) -> Decimal:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="louisgoldberg",
+        prog="solomons-sword",
         description="Solomon's Sword: Division 6 trust allocation with s 100A and s 99B checks. Review aid, not advice.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
@@ -81,7 +81,10 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print("=" * 60)
         print(f"Distribution Amount:     ${res.distribution_amount:,.2f}")
         print(f"Risk Zone:               {res.risk_zone.value}")
-        print(f"Ordinary Family Dealing: {res.is_ordinary_family_dealing}")
+        # None is the model's "undecided", which has to read as that on the
+        # workpaper rather than as the word None.
+        ofd = res.is_ordinary_family_dealing
+        print(f"Ordinary Family Dealing: {'Not determined' if ofd is None else ofd}")
         if res.risk_factors_identified:
             print(f"Risk Factors:            {', '.join(res.risk_factors_identified)}")
         print(f"Consequence:             {res.tax_consequence_summary}")
