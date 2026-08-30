@@ -81,7 +81,10 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         print("=" * 60)
         print(f"Distribution Amount:     ${res.distribution_amount:,.2f}")
         print(f"Risk Zone:               {res.risk_zone.value}")
-        print(f"Ordinary Family Dealing: {res.is_ordinary_family_dealing}")
+        # None is the model's "undecided", which has to read as that on the
+        # workpaper rather than as the word None.
+        ofd = res.is_ordinary_family_dealing
+        print(f"Ordinary Family Dealing: {'Not determined' if ofd is None else ofd}")
         if res.risk_factors_identified:
             print(f"Risk Factors:            {', '.join(res.risk_factors_identified)}")
         print(f"Consequence:             {res.tax_consequence_summary}")

@@ -11,7 +11,7 @@ from typing import List, Tuple
 @dataclass(frozen=True)
 class TrustResolutionSchedule:
     trust_name: str
-    financial_year: int
+    financial_year: int  # Year the income year ends: 2025 is 1 July 2024 to 30 June 2025
     resolution_date: date
     is_signed_by_trustee: bool
     streaming_powers_in_deed: bool
@@ -24,6 +24,13 @@ class TrustResolutionSchedule:
         deadline = date(self.financial_year, 6, 30)
         return self.resolution_date <= deadline
 
+    @property
+    def is_within_income_year(self) -> bool:
+        # A resolution distributes the income of the year it is made in, so a
+        # date before that year opened on 1 July belongs to a different year and
+        # is a mismatch, not an early resolution.
+        return self.resolution_date >= date(self.financial_year - 1, 7, 1)
+
 
 def validate_trust_resolution(schedule: TrustResolutionSchedule) -> Tuple[bool, List[str]]:
     """
@@ -33,6 +40,12 @@ def validate_trust_resolution(schedule: TrustResolutionSchedule) -> Tuple[bool, 
 
     if not schedule.is_effective_by_year_end:
         issues.append(f"Resolution dated {schedule.resolution_date} is after 30 June {schedule.financial_year} deadline.")
+    if not schedule.is_within_income_year:
+        issues.append(
+            f"Resolution dated {schedule.resolution_date} predates the "
+            f"{schedule.financial_year} income year, which began on 1 July "
+            f"{schedule.financial_year - 1}; it does not distribute that year's income."
+        )
     if not schedule.is_signed_by_trustee:
         issues.append("Trustee resolution is not executed/signed.")
     if schedule.allocated_percentages_total != Decimal("100.00"):

@@ -56,10 +56,11 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
     proportionate approach (Commissioner of Taxation v Bamford [2010] HCA 10).
 
     Refuses, rather than guesses, the cases this model does not implement:
-    nil income of the trust estate, no presently entitled beneficiary,
-    non-resident beneficiaries, specifically streamed capital gains or franked
-    dividends (Division 6E with Subdivisions 115-C and 207-B), and entitlements
-    outside the 0 to 100 per cent range.
+    nil income of the trust estate, a s 95 net loss, no presently entitled
+    beneficiary, non-resident beneficiaries, specifically streamed capital gains
+    or franked dividends (Division 6E with Subdivisions 115-C and 207-B),
+    entitlements outside the 0 to 100 per cent range, and entitlements that do
+    not reconcile exactly to the income of the trust estate.
     """
     total_trust_inc = assessment.trust_accounting_income
     s95_net = assessment.section95_net_taxable_income
@@ -76,6 +77,12 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             "presently entitled to, the proportionate approach cannot allocate the "
             "s 95 net income and the trustee is assessed under s 99 or s 99A"
         )
+    if s95_net < Decimal("0.00"):
+        raise ValueError(
+            "s 95 net income is a loss: a loss is not allocated to beneficiaries "
+            "as negative assessable shares, it is carried forward by the trust "
+            "against its own later net income"
+        )
     for b in assessment.beneficiaries:
         if not b.is_resident:
             raise ValueError(
@@ -90,9 +97,14 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
             )
 
     # Unrounded ratios: quantising each share's percentage before multiplying it
-    # into the s 95 pool loses cents that never reach any beneficiary.
+    # into the s 95 pool loses cents that never reach any beneficiary. The 2dp
+    # implied percentage below is a report field only; reconciliation is tested
+    # on the basis the operator actually supplied, because seven equal fixed
+    # entitlements that exhaust the income imply 14.29% each and 100.03% in total.
     ratios: list[Decimal] = []
     implied: list[Decimal] = []
+    pct_total = Decimal("0.00")
+    fixed_total = Decimal("0.00")
     for b in assessment.beneficiaries:
         if b.percentage_entitlement is not None:
             if not (Decimal("0.00") < b.percentage_entitlement <= Decimal("100.00")):
@@ -102,6 +114,7 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
                 )
             ratios.append(b.percentage_entitlement / Decimal("100.00"))
             implied.append(b.percentage_entitlement)
+            pct_total += b.percentage_entitlement
         elif b.fixed_entitlement_amount is not None:
             if b.fixed_entitlement_amount <= Decimal("0.00"):
                 raise ValueError(
@@ -114,14 +127,36 @@ def calculate_proportionate_share(assessment: TrustIncomeAssessment) -> List[Ben
                     Decimal("0.01"), rounding=ROUND_HALF_UP
                 )
             )
+            fixed_total += b.fixed_entitlement_amount
         else:
             raise ValueError(
                 f"{b.beneficiary_name} has neither a percentage nor a fixed entitlement"
             )
-    total_pct = sum(implied, Decimal("0.00"))
-    if abs(total_pct - Decimal("100.00")) > Decimal("0.01"):
+    # Exact reconciliation, not a tolerance: a percentage basis must sum to 100
+    # and a fixed basis to the income of the trust estate. Anything else leaves
+    # income genuinely unallocated, and the rounding residual below would hand
+    # that whole gap to one beneficiary as though it were quantisation dust.
+    entitled_total = fixed_total + pct_total * total_trust_inc / Decimal("100")
+    if entitled_total != total_trust_inc:
+        gap = (total_trust_inc - entitled_total).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        if fixed_total == Decimal("0.00"):
+            summary = f"beneficiary entitlements sum to {pct_total}%, not 100%"
+        elif pct_total == Decimal("0.00"):
+            summary = (
+                f"fixed entitlements sum to {fixed_total}, not the {total_trust_inc} "
+                "income of the trust estate"
+            )
+        else:
+            summary = (
+                f"beneficiary entitlements sum to {fixed_total} plus {pct_total}% of the "
+                f"{total_trust_inc} income of the trust estate"
+            )
         raise ValueError(
-            f"beneficiary entitlements sum to {total_pct}%, not 100%"
+            f"{summary}: {abs(gap)} of the income of the trust estate is unallocated, "
+            "and the proportionate approach will not allocate the s 95 net income "
+            "until the entitlements reconcile exactly"
         )
 
     # Allocate on the unrounded ratios, then hand the rounding residual to the

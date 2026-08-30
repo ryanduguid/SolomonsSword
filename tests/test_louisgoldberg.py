@@ -47,6 +47,10 @@ def test_section100a_risk_zones():
     )
     assert red_res.risk_zone == Section100ARiskZone.RED
     assert red_res.is_ordinary_family_dealing is False
+    # The s 99A rate is named, not hard-coded: the old "47%" was uncited and
+    # conflated the trustee rate with the individual top effective rate.
+    assert "47%" not in red_res.tax_consequence_summary
+    assert "top rate applying under s 99A" in red_res.tax_consequence_summary
 
     # Green Zone: Beneficiary receives and retains funds
     green_res = evaluate_section100a_risk(
@@ -107,7 +111,8 @@ def test_section100a_does_not_default_to_green():
         distribution_amount=Decimal("10000.00"),
     )
     assert result.risk_zone == Section100ARiskZone.OUTSIDE_GREEN
-    assert result.is_ordinary_family_dealing is False
+    # No zone assigned decides nothing, including the s 100A(13) exception.
+    assert result.is_ordinary_family_dealing is None
 
 
 def test_division6_rejects_percentages_that_do_not_total_100():
@@ -250,3 +255,121 @@ def test_green_zone_does_not_claim_the_ordinary_family_dealing_exception():
     assert res.risk_zone == Section100ARiskZone.GREEN
     assert res.is_ordinary_family_dealing is None
     assert "not a determination" in res.tax_consequence_summary
+
+
+def test_entitlements_that_do_not_reconcile_exactly_are_refused():
+    # Three 33.33% shares of $10m leave $1,000 unallocated. Tolerating that as a
+    # rounding difference handed the whole $1,000 to one beneficiary.
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("10000000.00"),
+        section95_net_taxable_income=Decimal("10000000.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", percentage_entitlement=Decimal("33.33")),
+            BeneficiaryEntitlement("B", percentage_entitlement=Decimal("33.33")),
+            BeneficiaryEntitlement("C", percentage_entitlement=Decimal("33.33")),
+        ],
+    )
+    with pytest.raises(ValueError) as excinfo:
+        calculate_proportionate_share(t)
+    assert "99.99%, not 100%" in str(excinfo.value)
+    assert "1000.00 of the income of the trust estate is unallocated" in str(excinfo.value)
+
+    # Same gap on the fixed basis: a cent short of the income of the trust
+    # estate is a cent no beneficiary is entitled to.
+    short = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[BeneficiaryEntitlement(n, fixed_entitlement_amount=Decimal("33333.33"))
+                       for n in "ABC"],
+    )
+    with pytest.raises(ValueError) as fixed_exc:
+        calculate_proportionate_share(short)
+    assert "fixed entitlements sum to 99999.99, not the 100000.00" in str(fixed_exc.value)
+    assert "0.01 of the income of the trust estate is unallocated" in str(fixed_exc.value)
+
+    # Mixed bases reconcile against the same income of the trust estate.
+    mixed = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("100000.00"),
+        beneficiaries=[
+            BeneficiaryEntitlement("A", fixed_entitlement_amount=Decimal("50000.00")),
+            BeneficiaryEntitlement("B", percentage_entitlement=Decimal("40.00")),
+        ],
+    )
+    with pytest.raises(ValueError, match="10000.00 of the income of the trust estate is unallocated"):
+        calculate_proportionate_share(mixed)
+
+
+def test_equal_fixed_entitlements_that_exhaust_the_income_are_allocated():
+    # Seven equal fixed entitlements imply 14.29% each, 100.03% once rounded,
+    # but they sum exactly to the income of the trust estate.
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("70000.00"),
+        section95_net_taxable_income=Decimal("70000.00"),
+        beneficiaries=[BeneficiaryEntitlement(n, fixed_entitlement_amount=Decimal("10000.00"))
+                       for n in "ABCDEFG"],
+    )
+    shares = calculate_proportionate_share(t)
+    assert len(shares) == 7
+    assert sum(s.section95_net_income_share for s in shares) == Decimal("70000.00")
+    assert shares[0].proportion_percentage == Decimal("14.29")
+
+
+def test_rounding_residual_moves_only_sub_cent_dust():
+    # Thirds of $10m as fixed amounts reconcile exactly; the larger s 95 pool
+    # makes the quantised shares overshoot by one cent, which the residual step
+    # takes back off the largest share.
+    fixed = [Decimal("3333333.33"), Decimal("3333333.33"), Decimal("3333333.34")]
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("10000000.00"),
+        section95_net_taxable_income=Decimal("12000000.00"),
+        beneficiaries=[BeneficiaryEntitlement(n, fixed_entitlement_amount=f)
+                       for n, f in zip("ABC", fixed)],
+    )
+    shares = calculate_proportionate_share(t)
+    assert sum(s.section95_net_income_share for s in shares) == Decimal("12000000.00")
+    for share, amount in zip(shares, fixed):
+        exact = t.section95_net_taxable_income * (amount / t.trust_accounting_income)
+        assert abs(share.section95_net_income_share - exact) <= Decimal("0.01")
+
+
+def test_section95_loss_is_not_allocated_to_beneficiaries():
+    t = TrustIncomeAssessment(
+        financial_year=2025, trust_name="T",
+        trust_accounting_income=Decimal("100000.00"),
+        section95_net_taxable_income=Decimal("-40000.00"),
+        beneficiaries=[BeneficiaryEntitlement("A", percentage_entitlement=Decimal("100.00"))],
+    )
+    with pytest.raises(ValueError, match="loss is not allocated to beneficiaries"):
+        calculate_proportionate_share(t)
+
+
+def test_resolution_before_the_income_year_started_is_refused():
+    schedule = TrustResolutionSchedule(
+        trust_name="Smith Family Trust",
+        financial_year=2025,
+        resolution_date=date(2015, 6, 25),
+        is_signed_by_trustee=True,
+        streaming_powers_in_deed=True,
+        default_beneficiary_clause_exists=True,
+        allocated_percentages_total=Decimal("100.00"),
+    )
+    is_valid, issues = validate_trust_resolution(schedule)
+    assert is_valid is False
+    assert any("predates the 2025 income year" in issue for issue in issues)
+
+
+def test_funds_not_received_is_recorded_as_a_risk_factor():
+    not_received = evaluate_section100a_risk(
+        beneficiary_name="A", distribution_amount=Decimal("50000.00"),
+        beneficiary_actually_received_funds=False)
+    unstated = evaluate_section100a_risk(
+        beneficiary_name="A", distribution_amount=Decimal("50000.00"))
+    assert not_received != unstated
+    assert any("did not receive the funds" in f for f in not_received.risk_factors_identified)
+    assert unstated.risk_factors_identified == []
