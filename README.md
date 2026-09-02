@@ -1,5 +1,15 @@
 # Solomon's Sword
 
+> [!IMPORTANT]
+> **Repository migration: 2 September 2026.** We moved maintained development to
+> [`packages/solomons-sword`](https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword)
+> in Australian Accounting. The first replacement release is
+> [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/solomons-sword/v0.1.3).
+>
+> Keep this repository's [`v0.1.2`](https://github.com/ryanduguid/SolomonsSword/releases/tag/v0.1.2)
+> as the rollback release until the fourteen-day observation window closes on
+> 16 September 2026. Open new issues and pull requests in Australian Accounting.
+
 ```
 +----------------------------------------------------------------------+
 |                            SolomonsSword                             |
