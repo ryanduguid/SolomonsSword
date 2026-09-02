@@ -1,6 +1,12 @@
+# Maintained release history
+
+Australian Accounting's [filtered GitHub Releases page](https://github.com/ryanduguid/australian-accounting/releases?q=solomons-sword)
+records v0.1.3 and subsequent maintained releases. This standalone repository
+preserves the rollback history through v0.1.2.
+
 # v0.1.2
 
-The repository's [GitHub Releases](https://github.com/ryanduguid/SolomonsSword/releases) page is the canonical release history. A separate changelog is intentionally not maintained.
+Releases through v0.1.2 are recorded on this repository's [GitHub Releases page](https://github.com/ryanduguid/SolomonsSword/releases). A separate changelog is intentionally not maintained.
 
 Prepared 0.1.2 notes. No PyPI distribution has been published; this source-only
 project currently installs from a clone. The statutory corrections below came
