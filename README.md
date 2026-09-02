@@ -1,5 +1,15 @@
 # Solomon's Sword
 
+> [!IMPORTANT]
+> **Repository migration: 2 September 2026.** We moved maintained development to
+> [`packages/solomons-sword`](https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword)
+> in Australian Accounting. The first replacement release is
+> [`v0.1.3`](https://github.com/ryanduguid/australian-accounting/releases/tag/solomons-sword/v0.1.3).
+>
+> Keep this repository's [`v0.1.2`](https://github.com/ryanduguid/SolomonsSword/releases/tag/v0.1.2)
+> as the rollback release until the fourteen-day observation window closes on
+> 16 September 2026. Open new issues and pull requests in Australian Accounting.
+
 ```
 +----------------------------------------------------------------------+
 |                            SolomonsSword                             |
@@ -21,8 +31,8 @@
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
-**Package lifecycle:** source-only. Install from this repository; it is not
-published to PyPI.
+**Package lifecycle:** published from Australian Accounting. Install
+`solomons-sword` from PyPI.
 
 The `solomons-sword` distribution and command match the project identity. The
 `louisgoldberg` import package remains unchanged, so internal Python imports do
@@ -61,9 +71,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ### Installation
 ```bash
-git clone https://github.com/ryanduguid/SolomonsSword.git
-cd SolomonsSword
-python -m pip install .
+python -m pip install solomons-sword
 ```
 
 ### CLI Usage

@@ -35,9 +35,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/ryanduguid/SolomonsSword"
-Repository = "https://github.com/ryanduguid/SolomonsSword.git"
-Issues = "https://github.com/ryanduguid/SolomonsSword/issues"
+Homepage = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword"
+Repository = "https://github.com/ryanduguid/australian-accounting/tree/main/packages/solomons-sword"
+Issues = "https://github.com/ryanduguid/australian-accounting/issues"
 
 [project.optional-dependencies]
 dev = [
