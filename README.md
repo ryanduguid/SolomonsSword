@@ -31,8 +31,8 @@
 
 **Trust distribution allocation, Section 100A / 99B risk evaluation, and Division 6 ITAA 1936 review helpers for Australian trusts.**
 
-**Package lifecycle:** source-only. Install from this repository; it is not
-published to PyPI.
+**Package lifecycle:** published from Australian Accounting. Install
+`solomons-sword` from PyPI.
 
 The `solomons-sword` distribution and command match the project identity. The
 `louisgoldberg` import package remains unchanged, so internal Python imports do
@@ -71,9 +71,7 @@ Full boundary statement: [DISCLAIMER.md](DISCLAIMER.md).
 
 ### Installation
 ```bash
-git clone https://github.com/ryanduguid/SolomonsSword.git
-cd SolomonsSword
-python -m pip install .
+python -m pip install solomons-sword
 ```
 
 ### CLI Usage
